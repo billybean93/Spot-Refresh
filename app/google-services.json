@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "19715601784",
+    "firebase_url": "https://clean-up-spots-default-rtdb.firebaseio.com",
+    "project_id": "clean-up-spots",
+    "storage_bucket": "clean-up-spots.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19715601784:android:8d6c93df674fc2dd76448d",
+        "android_client_info": {
+          "package_name": "rmit.ad.clean_up_spot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEQOpqmtcFxLQa4HcSyqwx-8QcQKjlxG8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19715601784:android:e02306d192ebe62976448d",
+        "android_client_info": {
+          "package_name": "rmit.ad.cleanupspots"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEQOpqmtcFxLQa4HcSyqwx-8QcQKjlxG8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19715601784:android:bdea4121b442d7fc76448d",
+        "android_client_info": {
+          "package_name": "rmit.ad.spotrefresh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEQOpqmtcFxLQa4HcSyqwx-8QcQKjlxG8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

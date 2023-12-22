@@ -1,0 +1,19 @@
+<!-- res/values/styles.xml -->
+
+<resources>
+
+    <!-- Base application theme -->
+    <style name="EcoTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here -->
+        <item name="colorPrimary">@color/ecoGreen</item>
+        <item name="colorPrimaryDark">@color/ecoDarkGreen</item>
+        <item name="colorAccent">@color/ecoAccentColor</item>
+        <item name="android:windowBackground">@android:color/background_light</item>
+    </style>
+
+    <!-- Define eco-friendly colors -->
+    <color name="ecoGreen">#4CAF50</color>
+    <color name="ecoDarkGreen">#388E3C</color>
+    <color name="ecoAccentColor">#8BC34A</color>
+
+</resources>

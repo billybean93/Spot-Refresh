@@ -1,0 +1,31 @@
+<!-- res/layout/activity_main.xml -->
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:theme="@style/EcoTheme"
+    android:background="@drawable/green_background_gradient"
+    tools:context=".UserTypeActivity">
+
+    <Button
+        android:id="@+id/buttonBecomeVolunteer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Become a Volunteer"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/pink_background_gradient"/>
+
+
+    <Button
+        android:id="@+id/buttonRegister"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Register a Clean-Up Location"
+        android:background="@drawable/pink_background_gradient"/>
+
+</LinearLayout>

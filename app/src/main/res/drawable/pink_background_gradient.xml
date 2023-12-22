@@ -1,0 +1,8 @@
+<!-- res/drawable/background_gradient_pastel_pink.xml -->
+
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:startColor="#FFD1DC"
+        android:endColor="#FF91A4"
+        android:angle="45"/>
+</shape>
