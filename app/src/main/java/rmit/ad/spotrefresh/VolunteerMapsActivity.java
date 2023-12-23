@@ -1,25 +1,23 @@
 package rmit.ad.spotrefresh;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
-
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
+import android.annotation.SuppressLint;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
+
 
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -28,69 +26,80 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.Date;
 
-import java.util.ArrayList;
+public class VolunteerMapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-
-public class VolunteerMapsActivity extends FragmentActivity implements OnMapReadyCallback {
-    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    private static final long UPDATE_INTERVAL = 20*1000 ;
-    private static final long FASTEST_INTERVAL = 10*1000 ;
-    protected FusedLocationProviderClient client;
-    protected LocationRequest mLocationRequest;
     private GoogleMap mMap;
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_volunteer_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
+        // Initialize the fused location provider client
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-    }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        requestPermission();
-        client = LocationServices.getFusedLocationProviderClient(VolunteerMapsActivity.this);
-        mMap = googleMap;
-
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
-
-            @Override
-            public void onMapClick(LatLng latLng) {
-
-            }
-        });
+        // Start location updates
         startLocationUpdate();
     }
 
-    private void requestPermission(){
-        ActivityCompat.requestPermissions(VolunteerMapsActivity.this, new String[]{
-                android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        mMap = googleMap;
+
+        // Enable zoom controls
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+
+
+
+
+        // Move the camera to the device location
+        getDeviceLocation();
+
+        // Display markers from the real-time database
+        addMarkersFromDatabase();
+    }
+
+    private void startLocationUpdate() {
+        // Implement location update logic here if needed
+        // ...
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getDeviceLocation() {
+        fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                    mMap.addMarker(new MarkerOptions()
+                            .position(latLng)
+                            .icon(BitmapDescriptorFactory.defaultMarker()));
+                }
+
+            }
+        });
     }
 
     @SuppressLint("MissingPermission")
     public void getPosition(View view){
-        client.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+        fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -105,53 +114,53 @@ public class VolunteerMapsActivity extends FragmentActivity implements OnMapRead
         });
     }
 
-    @SuppressLint({"MissingPermission", "RestrictedApi"})
-    private void startLocationUpdate(){
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(UPDATE_INTERVAL);
-        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
-        client.requestLocationUpdates(mLocationRequest, new LocationCallback() {
+    // ...
+
+    private void addMarkersFromDatabase() {
+        // Get a reference to the Firebase Realtime Database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+        // Get a reference to the "spots" node in the database
+        database.getReference("spots").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onLocationResult(LocationResult locationResult){
-                super.onLocationResult(locationResult);
-                Location location = locationResult.getLastLocation();
-                //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                Toast.makeText(VolunteerMapsActivity.this, "(" + location.getLatitude() + ","
-                        + location.getLongitude() +")", Toast.LENGTH_SHORT).show();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // Loop through each marker in the database
+                for (DataSnapshot markerSnapshot : dataSnapshot.getChildren()) {
+                    // Get the values from the marker data
+                    String title = markerSnapshot.child("title").getValue(String.class);
+                    double latitude = markerSnapshot.child("latitude").getValue(Double.class);
+                    double longitude = markerSnapshot.child("longitude").getValue(Double.class);
+
+                    // Create a LatLng object with the retrieved latitude and longitude values
+                    LatLng location = new LatLng(latitude, longitude);
+
+                    // Create MarkerOptions and add a marker to the map
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(location)
+                            .title(title);
+
+                    mMap.addMarker(markerOptions);
+                }
             }
-        }, null);
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle database error
+                Toast.makeText(VolunteerMapsActivity.this, "Failed to read markers from database.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-//    private class GetRestaurant extends AsyncTask<Void,Void,Void> {
-//        String jsonString ="";
-//        @Override
-//        protected Void doInBackground(Void... voids) {
-//            jsonString = HttpHandler.getRequest(RESTAURANT_API_URL);
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Void aVoid){
-//            super.onPostExecute(aVoid);
-//
-//            try {
-//                JSONArray jsonArray = new JSONArray(jsonString);
-//                for (int i=0; i < jsonArray.length();i++){
-//                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-//                    LatLng position = new LatLng(
-//                            jsonObject.getDouble("latitude"),
-//                            jsonObject.getDouble("longitude"));
-//                    mMap.addMarker(new MarkerOptions()
-//                            .position(position)
-//                            .icon(bitmapDescriptorFromVector(MapsActivity.this, R.drawable.restaurant))
-//                            .snippet(jsonObject.getString("name")));
-//                }
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
+// ...
+
+
+    private Date parseDate(String dateString) {
+        // Implement date parsing logic here based on the actual date format in your database
+        // For example, using SimpleDateFormat:
+        // SimpleDateFormat dateFormat = new SimpleDateFormat("your_date_format_here");
+        // return dateFormat.parse(dateString);
+        return new Date(); // Placeholder, modify as needed
+    }
 
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);

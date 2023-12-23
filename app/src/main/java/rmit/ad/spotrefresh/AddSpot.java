@@ -12,6 +12,8 @@ import android.widget.Toast;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class AddSpot extends Activity {
@@ -45,31 +47,37 @@ public class AddSpot extends Activity {
                 int month = datePicker.getMonth() + 1; // Months are 0-indexed
                 int year = datePicker.getYear();
 
+                // Convert DatePicker values to a Date object
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(year, month, day);
+                Date selectedDate = calendar.getTime();
+
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                String formattedDate = sdf.format(selectedDate);
+
                 // Do something with the input (e.g., display a toast)
                 String message = "General Info: " + generalInfo + "\nDate: " + day + "/" + month + "/" + year;
                 Toast.makeText(AddSpot.this, message, Toast.LENGTH_SHORT).show();
 
                 Intent intent = getIntent();
                 if (intent != null) {
-                    String markerTitle = intent.getStringExtra("marker_title");
                     double markerLatitude = intent.getDoubleExtra("marker_latitude", 0.0);
                     double markerLongitude = intent.getDoubleExtra("marker_longitude", 0.0);
 
                     // Now you have the data, you can save it to the database
-                    saveSpotToDatabase(markerTitle, markerLatitude, markerLongitude);
+                    saveSpotToDatabase(generalInfo, markerLatitude, markerLongitude, selectedDate);
                 }
-                Intent intent1 = new Intent(getApplicationContext(), OwnerMapsActivity.class);
-                startActivity(intent1);
+                finish();
             }
         });
     }
 
-    private void saveSpotToDatabase(String title, double latitude, double longitude) {
+    private void saveSpotToDatabase(String title, double latitude, double longitude, Date date) {
         // Generate a unique key for the spot
         String spotId = databaseReference.push().getKey();
 
         // Create a SpotInfo object with the received data
-        SpotInfo spot = new SpotInfo(title, latitude, longitude, new Date());
+        SpotInfo spot = new SpotInfo(title, latitude, longitude, date);
 
         // Save the SpotInfo object to the database using the unique key
         databaseReference.child(spotId).setValue(spot);

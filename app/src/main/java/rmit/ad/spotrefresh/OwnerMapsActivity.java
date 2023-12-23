@@ -1,5 +1,6 @@
 package rmit.ad.spotrefresh;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -13,6 +14,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -28,15 +30,23 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -50,7 +60,7 @@ public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_volunteer_maps);
+        setContentView(R.layout.activity_owner_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -73,6 +83,8 @@ public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCal
         mMap = googleMap;
 
         mMap.getUiSettings().setZoomControlsEnabled(true);
+
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -90,13 +102,31 @@ public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCal
 //                return true;
 //            }
 //        });
-
         startLocationUpdate();
+        getDeviceLocation();
+        addMarkersFromDatabase();
     }
 
     private void requestPermission(){
         ActivityCompat.requestPermissions(OwnerMapsActivity.this, new String[]{
                 android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getDeviceLocation() {
+        client.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                    mMap.addMarker(new MarkerOptions()
+                            .position(latLng)
+                            .icon(BitmapDescriptorFactory.defaultMarker()));
+                }
+
+            }
+        });
     }
 
     @SuppressLint("MissingPermission")
@@ -160,35 +190,54 @@ public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCal
         startActivity(intent);
     }
 
-//    private class GetRestaurant extends AsyncTask<Void,Void,Void> {
-//        String jsonString ="";
-//        @Override
-//        protected Void doInBackground(Void... voids) {
-//            jsonString = HttpHandler.getRequest(RESTAURANT_API_URL);
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Void aVoid){
-//            super.onPostExecute(aVoid);
-//
-//            try {
-//                JSONArray jsonArray = new JSONArray(jsonString);
-//                for (int i=0; i < jsonArray.length();i++){
-//                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-//                    LatLng position = new LatLng(
-//                            jsonObject.getDouble("latitude"),
-//                            jsonObject.getDouble("longitude"));
-//                    mMap.addMarker(new MarkerOptions()
-//                            .position(position)
-//                            .icon(bitmapDescriptorFromVector(MapsActivity.this, R.drawable.restaurant))
-//                            .snippet(jsonObject.getString("name")));
-//                }
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
+    private void addMarkersFromDatabase() {
+        // Get a reference to the Firebase Realtime Database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+        // Get a reference to the "spots" node in the database
+        database.getReference("spots").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // Loop through each marker in the database
+                for (DataSnapshot markerSnapshot : dataSnapshot.getChildren()) {
+                    // Get the values from the marker data
+                    String title = markerSnapshot.child("title").getValue(String.class);
+                    double latitude = markerSnapshot.child("latitude").getValue(Double.class);
+                    double longitude = markerSnapshot.child("longitude").getValue(Double.class);
+
+                    // Create a LatLng object with the retrieved latitude and longitude values
+                    LatLng location = new LatLng(latitude, longitude);
+
+                    // Create MarkerOptions and add a marker to the map
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(location)
+                            .title(title);
+
+                    mMap.addMarker(markerOptions);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle database error
+                Toast.makeText(OwnerMapsActivity.this, "Failed to read markers from database.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+// ...
+
+
+    private Date parseDate(String dateString) {
+        // Implement date parsing logic here based on the actual date format in your database
+        // For example, using SimpleDateFormat:
+        // SimpleDateFormat dateFormat = new SimpleDateFormat("your_date_format_here");
+        // return dateFormat.parse(dateString);
+        return new Date(); // Placeholder, modify as needed
+    }
+
+
+
 
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
