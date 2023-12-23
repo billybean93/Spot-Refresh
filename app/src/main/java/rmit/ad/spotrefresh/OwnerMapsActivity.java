@@ -81,15 +81,15 @@ public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCal
         });
 
         // Set up marker click listener
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                // Handle marker click
-                // Start the new activity here to allow the user to add more info
-                startMarkerDetailsActivity(marker);
-                return true;
-            }
-        });
+//        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+//            @Override
+//            public boolean onMarkerClick(Marker marker) {
+//                // Handle marker click
+//                // Start the new activity here to allow the user to add more info
+//                startMarkerDetailsActivity(marker);
+//                return true;
+//            }
+//        });
 
         startLocationUpdate();
     }
@@ -140,6 +140,12 @@ public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCal
 
         // Move camera to the marker
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f));
+
+        Intent intent = new Intent(this, AddSpot.class);
+        intent.putExtra("marker_title", marker.getTitle());
+        intent.putExtra("marker_latitude", marker.getPosition().latitude);
+        intent.putExtra("marker_longitude", marker.getPosition().longitude);
+        startActivity(intent);
 
         // Optionally, you can perform additional actions with the marker
         // For example, you can store the marker information in Firebase or perform other tasks.
