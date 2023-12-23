@@ -92,16 +92,15 @@ public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCal
             }
         });
 
-        // Set up marker click listener
-//        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//            @Override
-//            public boolean onMarkerClick(Marker marker) {
-//                // Handle marker click
-//                // Start the new activity here to allow the user to add more info
-//                startMarkerDetailsActivity(marker);
-//                return true;
-//            }
-//        });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                // Handle marker click
+                // Start the new activity here to allow the user to add more info
+                startMarkerDetailsActivity(marker);
+                return true;
+            }
+        });
         startLocationUpdate();
         getDeviceLocation();
         addMarkersFromDatabase();
@@ -183,7 +182,7 @@ public class OwnerMapsActivity extends FragmentActivity implements OnMapReadyCal
 
     private void startMarkerDetailsActivity(Marker marker) {
         // Start the MarkerDetailsActivity and pass necessary information
-        Intent intent = new Intent(this, AddSpot.class);
+        Intent intent = new Intent(this, MarkerDetails.class);
         intent.putExtra("marker_title", marker.getTitle());
         intent.putExtra("marker_latitude", marker.getPosition().latitude);
         intent.putExtra("marker_longitude", marker.getPosition().longitude);

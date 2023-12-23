@@ -8,6 +8,9 @@ public class SpotInfo {
     private double longitude;
     private Date date;
 
+    private String[] participants;
+    private String uniqueID;
+
     public SpotInfo() {
         // Default constructor required for Firebase
     }
